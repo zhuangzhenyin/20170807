@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            margin: 0px;
+        }
+        body::-webkit-scrollbar {display:none}
+        h1 {
+            margin: 0px;
+        }
+        .section {
+            text-align: center;
+            font-size: 30px;
+            font-family: "微软雅黑";
+            color: #fff;
+        }
+        ol {
+            list-style: none;
+            width: 10px;
+            position: fixed;
+            right: 10px;
+            top: 50%;
+            margin-top: -20px;
+        }
+        ol li {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #fff;
+        }
+        ol li+li {
+            margin-top: 10px;
+        }
+        ol .cur {
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="section">
+            <h1>第一屏</h1>
+        </div>
+        <div class="section">
+            <h1>第二屏</h1>
+        </div>
+        <div class="section">
+            <h1>第三屏</h1>
+        </div>
+        <div class="section">
+            <h1>第四屏</h1>
+        </div>
+        <div class="section">
+            <h1>第五屏</h1>
+        </div>
+        <!--<ol>-->
+            <!--<li class="cur"></li>-->
+            <!--<li></li>-->
+            <!--<li></li>-->
+            <!--<li></li>-->
+            <!--<li></li>-->
+        <!--</ol>-->
+    </div>
+
+
+    <script src="myjs.js"></script>
+    <script>
+        function Slider(bg) {
+            this.bg = bg;
+            this.key = 0;
+            this.timer1 = null;
+            this.timer2 = null;
+            this.iTarget = 0;
+            this.speed = 0;
+            this.oBox = document.getElementsByClassName("box")[0];
+            this.aDiv = document.getElementsByClassName("section");
+
+        }
+
+        Slider.prototype = {
+            //设置颜色
+            setColor:function () {
+                //动态获取可视区宽高
+                for(var i = 0;i < this.aDiv.length;i++) {
+                    this.aDiv[i].style.width = window.innerWidth + "px";
+                    this.aDiv[i].style.height = window.innerHeight + "px";
+                    this.aDiv[i].style.background = this.bg[i];
+                    console.log(this.aDiv[i].offsetHeight)
+                }
+            },
+            //创建导航点
+            createOl:function  () {
+                this.newOl = document.createElement("ol");
+                this.oBox.append(this.newOl);
+                for(var i = 0;i < this.aDiv.length;i++) {
+                    var newLi = document.createElement("li");
+                    this.newOl.appendChild(newLi);
+                }
+                this.newOl.children[0].className = "cur";
+            },
+            //全屏滚动
+            scrollBuff:function () {
+                var that = this;
+                document.onmousewheel = function (ev) {
+                    clearTimeout(that.timer1);
+                    that.timer1 = setTimeout(function () {
+                        var oEvent = ev || event;
+                        if(oEvent.deltaY > 0) {
+                            that.toDown();
+                        }
+                        else {
+                            that.toUp();
+                        }
+                    },100)
+                }
+            },
+            //向下滚动
+            toDown:function () {
+                this.key >= this.aDiv.length - 1? this.key :this.key++;
+                for(var i = 0;i < this.aDiv.length;i++) {
+                    this.newOl.children[i].className = "";
+                }
+                this.newOl.children[this.key].className = "cur";
+                this.iTarget = this.aDiv[this.key].offsetTop;
+                this.buff(this.iTarget);
+            },
+            //向上滚动
+            toUp:function () {
+                this.key <= 0 ? this.key :this.key--;
+                for(var i = 0;i < this.aDiv.length;i++) {
+                    this.newOl.children[i].className = "";
+                }
+                this.newOl.children[this.key].className = "cur";
+                this.iTarget = this.aDiv[this.key].offsetTop;
+                this.buff(this.iTarget);
+            },
+            //缓冲运动
+            buff:function () {
+                var h = 0;
+                var that = this;
+                clearInterval(this.timer2);
+                this.timer2 = setInterval(function() {
+                    h = scroll().top;
+                    that.speed = (that.iTarget - h)/10;
+                    that.speed = that.speed > 0 ?Math.ceil(that.speed) : Math.floor(that.speed);
+                    window.scrollTo(0,that.speed + h);
+                    if(that.speed == 0 ) {
+                        clearInterval(that.timer2);
+                    }
+                },20)
+            },
+            //绑定事件
+            bindEvent:function () {
+                this.setColor();
+                this.autoBind();
+                this.scrollBuff();
+                this.createOl();
+            },
+            //动态绑定事件
+            autoBind:function () {
+                var that = this;
+                window.onresize = function () {
+                    that.bindEvent();
+                }
+            }
+        }
+        var bg = ["#438edb","#3adeb2","#d8f64a","#dd52d8","#f8bd4a"];
+        var oSlider = new Slider(bg);
+        oSlider.bindEvent();
+        console.log(oSlider);
+    </script>
+
+</body>
+</html>
